@@ -1,0 +1,123 @@
+server default {
+listen {
+    type = auth
+    ipaddr = * # Listen on all interfaces inside the container
+    port = 0 # Use default 1812 or 18120
+    # transport = udp # Default
+}
+listen {
+    type = acct
+    ipaddr = *
+    port = 0 # Use default 1813 or 18130
+    # transport = udp # Default
+}
+
+# --- Pre-Authorization ---
+# Handle User-Name, CHAP-Password, etc.
+preprocess {
+    # If using expiration, uncomment this
+    # Huntgroup-Name = "%{User-Name}"
+    # Expiration = "%{sql:SELECT value FROM radcheck WHERE username = '%{Huntgroup-Name}' AND attribute = 'Expiration'}"
+    # checkval {
+    #   attribute = Expiration
+    #   value = ACCEPT # Or whatever indicates expired in your logic
+    #   action = REJECT
+    # }
+    # update control { # Clean up temporary attributes
+    #   Huntgroup-Name := ""
+    #   Expiration := ""
+    # }
+    # Handle EAP Negotiation
+    eap
+    # Rewrite username if needed (e.g., remove realm)
+    # attr_filter.access_reject # Recommended
+}
+
+# --- Authorization ---
+# Decide *if* we can authenticate the user
+authorize {
+    # filter_username # Filter username characters if needed
+    # digest # Uncomment if using Digest-Auth
+
+    # ** KEY: Check against the SQL database **
+    sql
+
+    # ** KEY: Check if user is in the 'blocked-guests' group **
+    # This checks the radusergroup table implicitly via the sql module if configured
+    # Then uses the result (SQL-Group attribute) to reject if needed
+    if (&SQL-Group && (&SQL-Group == "${env:RADIUS_BLOCKED_GROUP}")) {
+       update control { Auth-Type := Reject }
+       reject # Explicitly reject here
+    }
+
+    # Handle EAP authentication types
+    eap {
+        ok = return # If EAP says OK, skip further checks here
+        updated = return
+    }
+
+    # Other modules (e.g., check PAP password from files, ldap, etc.)
+    # pap # Might not be needed if only using SQL Cleartext-Password
+
+    # If no Auth-Type is set yet, reject
+    # if (!control:Auth-Type) {
+    #    update control { Auth-Type := Reject }
+    # }
+    # Ensure we allow authentication if not rejected by now
+    # update control { Auth-Type := Accept } # Often handled by auth methods
+}
+
+# --- Authentication ---
+# Verify the user's credentials
+authenticate {
+    # Uncomment Digest if used
+    # Auth-Type Digest {
+    #   digest
+    # }
+
+    # Handle EAP methods (TTLS, PEAP, etc.)
+    eap
+
+    # Handle PAP - This will check against the 'Cleartext-Password' fetched by the 'sql' module in authorize
+    Auth-Type PAP {
+        pap # This performs the actual PAP comparison
+    }
+
+    # Handle CHAP, MS-CHAP, etc. if needed
+    # Auth-Type CHAP { chap }
+    # Auth-Type MS-CHAP { mschap }
+}
+
+# --- Post-Authentication ---
+# Actions after successful/failed authentication
+post-auth {
+    # SQL accounting updates etc.
+    # Post-Auth-Type REJECT {
+        #attr_filter.access_reject # Recommended for logging rejected attributes
+        #sql # Log failed attempts to SQL if desired
+        # -sql # Remove standard SQL logging on reject if too verbose
+    #}
+    # Update session state if needed
+    # exec # Run external scripts
+    # remove_reply_message_if_eap # Clean up EAP messages
+    sql # Log successful auth to postauth table if configured
+}
+
+# --- Pre-Accounting ---
+pre-acct {
+    # preprocess # Run preprocess module if needed for accounting
+    # suffix # Handle realms
+    # files # Read accounting config from files
+}
+
+# --- Accounting ---
+accounting {
+    # detail # Log full request details
+    # unix # System accounting
+    # radutmp # radwtmp logging
+    sql # ** KEY: Log accounting data to SQL (radacct table) **
+    # exec # External scripts
+    # attr_filter.accounting_response # Recommended
+}
+# ... other server sections ...
+} # End server default
