@@ -40,7 +40,7 @@ authorize {
     # digest # Uncomment if using Digest-Auth
 
     # ** KEY: Check against the SQL database **
-    sql_module
+    sql
 
     # ** KEY: Check if user is in the 'blocked-guests' group **
     # This checks the radusergroup table implicitly via the sql module if configured
@@ -100,7 +100,7 @@ post-auth {
     # Update session state if needed
     # exec # Run external scripts
     # remove_reply_message_if_eap # Clean up EAP messages
-    sql_module # Log successful auth to postauth table if configured
+    sql # Log successful auth to postauth table if configured
 }
 
 # --- Pre-Accounting ---
@@ -115,7 +115,7 @@ accounting {
     # detail # Log full request details
     # unix # System accounting
     # radutmp # radwtmp logging
-    sql_module # ** KEY: Log accounting data to SQL (radacct table) **
+    sql # ** KEY: Log accounting data to SQL (radacct table) **
     # exec # External scripts
     # attr_filter.accounting_response # Recommended
 }
