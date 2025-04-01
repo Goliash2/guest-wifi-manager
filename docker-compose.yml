@@ -23,7 +23,7 @@ services:
 
   # --- FreeRADIUS ---
   freeradius:
-    image: freeradius/freeradius-server:3.2-alpine # Use a specific stable tag
+    image: freeradius/freeradius-server:latest-3.2-alpine # Use a specific stable tag
     container_name: guestwifi-freeradius
     restart: unless-stopped
     depends_on:
