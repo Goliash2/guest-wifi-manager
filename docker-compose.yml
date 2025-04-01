@@ -70,7 +70,7 @@ services:
       mariadb:
         condition: service_healthy # Wait for DB
     environment:
-      NODE_ENV: ${NODE_ENV:-production} # 'development' or 'production'
+      NODE_ENV: ${NODE_ENV} # 'development' or 'production'
       PORT: 3000
       DB_URL: mysql://${MARIADB_USER}:${MARIADB_PASSWORD}@mariadb:3306/${MARIADB_DATABASE}
       JWT_SECRET: ${JWT_SECRET} # Set in .env
