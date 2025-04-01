@@ -45,7 +45,7 @@ authorize {
     # ** KEY: Check if user is in the 'blocked-guests' group **
     # This checks the radusergroup table implicitly via the sql module if configured
     # Then uses the result (SQL-Group attribute) to reject if needed
-    if (&SQL-Group && (&SQL-Group == "${env:RADIUS_BLOCKED_GROUP}")) {
+    if (&SQL-Group && (&SQL-Group == "blocked-guests")) {
        update control { Auth-Type := Reject }
        reject # Explicitly reject here
     }

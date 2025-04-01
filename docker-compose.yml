@@ -1,3 +1,7 @@
+# Optional but recommended: Specify the Compose specification version
+version: '3.8'
+
+# --- Services Definition (Top Level) ---
 services:
   # --- Database ---
   mariadb:
@@ -26,6 +30,7 @@ services:
     image: freeradius/freeradius-server:latest-3.2-alpine # Use a specific stable tag
     container_name: guestwifi-freeradius
     restart: unless-stopped
+    command: ["radiusd", "-X"] # Run in foreground debug mode
     depends_on:
       mariadb:
         condition: service_healthy # Wait for MariaDB to be ready
@@ -39,6 +44,7 @@ services:
       # RADIUS specific secrets (should be strong)
       RADIUS_SHARED_SECRET: ${RADIUS_SHARED_SECRET} # Secret for NAS/APs
       RADIUS_CLIENTS: ${RADIUS_CLIENTS} # Example: IP/CIDR of allowed NAS/APs
+      RADIUS_BLOCKED_GROUP: ${RADIUS_BLOCKED_GROUP} # Group name used for blocking
     ports:
       # Expose RADIUS ports to your network where APs are located
       # Map host port to container port if needed, otherwise just expose container port
@@ -103,7 +109,7 @@ services:
     networks:
       - proxy_network # Only needs to be reachable by Nginx Proxy Manager
 
-# --- Networks ---
+# --- Networks Definition (Top Level - aligned with 'services') ---
 networks:
   internal_network:
     driver: bridge # Internal communication between backend, db, radius
@@ -111,7 +117,8 @@ networks:
     external: true # Assumes network used by Nginx Proxy Manager already exists
     name: ${NPM_NETWORK} # Name of the NPM network (set in .env if different)
 
-# --- Volumes ---
+# --- Volumes Definition (Top Level - aligned with 'services' and 'networks') ---
 volumes:
   mariadb_data:
+    # Using a named volume managed by Docker
   # freeradius_logs: # Uncomment if persisting logs
