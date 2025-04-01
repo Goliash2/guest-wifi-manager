@@ -5,10 +5,10 @@ services:
     container_name: guestwifi-mariadb
     restart: unless-stopped
     environment:
-      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:-changeme_root_password} # Set in .env
-      MARIADB_DATABASE: ${MARIADB_DATABASE:-radius}          # Set in .env or use default
-      MARIADB_USER: ${MARIADB_USER:-radius}                  # Set in .env or use default
-      MARIADB_PASSWORD: ${MARIADB_PASSWORD:-changeme_radius_password} # Set in .env
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD} # Set in .env
+      MARIADB_DATABASE: ${MARIADB_DATABASE}          # Set in .env or use default
+      MARIADB_USER: ${MARIADB_USER}                  # Set in .env or use default
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD} # Set in .env
     volumes:
       - mariadb_data:/var/lib/mysql
       # Optional: Mount initialization scripts (e.g., to create tables if needed)
@@ -33,12 +33,12 @@ services:
       # Pass DB credentials to FreeRADIUS environment (used in sql.conf)
       MARIADB_HOST: mariadb # Service name of the DB container
       MARIADB_PORT: 3306
-      MARIADB_USER: ${MARIADB_USER:-radius}
-      MARIADB_PASSWORD: ${MARIADB_PASSWORD:-changeme_radius_password}
-      MARIADB_DATABASE: ${MARIADB_DATABASE:-radius}
+      MARIADB_USER: ${MARIADB_USER}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD}
+      MARIADB_DATABASE: ${MARIADB_DATABASE}
       # RADIUS specific secrets (should be strong)
-      RADIUS_SHARED_SECRET: ${RADIUS_SHARED_SECRET:-testing123} # Secret for NAS/APs
-      RADIUS_CLIENTS: ${RADIUS_CLIENTS:-10.0.0.0/8} # Example: IP/CIDR of allowed NAS/APs
+      RADIUS_SHARED_SECRET: ${RADIUS_SHARED_SECRET} # Secret for NAS/APs
+      RADIUS_CLIENTS: ${RADIUS_CLIENTS} # Example: IP/CIDR of allowed NAS/APs
     ports:
       # Expose RADIUS ports to your network where APs are located
       # Map host port to container port if needed, otherwise just expose container port
@@ -72,16 +72,16 @@ services:
     environment:
       NODE_ENV: ${NODE_ENV:-production} # 'development' or 'production'
       PORT: 3000
-      DB_URL: mysql://${MARIADB_USER:-radius}:${MARIADB_PASSWORD:-changeme_radius_password}@mariadb:3306/${MARIADB_DATABASE:-radius}
-      JWT_SECRET: ${JWT_SECRET:-changeme_strong_jwt_secret} # Set in .env
-      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-1h} # How long logins are valid
+      DB_URL: mysql://${MARIADB_USER}:${MARIADB_PASSWORD}@mariadb:3306/${MARIADB_DATABASE}
+      JWT_SECRET: ${JWT_SECRET} # Set in .env
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN} # How long logins are valid
       SMTP_HOST: ${SMTP_HOST} # Set in .env
-      SMTP_PORT: ${SMTP_PORT:-587} # Set in .env
+      SMTP_PORT: ${SMTP_PORT} # Set in .env
       SMTP_USER: ${SMTP_USER} # Set in .env
       SMTP_PASS: ${SMTP_PASS} # Set in .env
       SMTP_FROM_ADDRESS: ${SMTP_FROM_ADDRESS} # Optional: Set in .env (e.g., no-reply@yourdomain.com)
-      SMTP_TLS_REJECT_UNAUTHORIZED: ${SMTP_TLS_REJECT_UNAUTHORIZED:-true} # Set to false for self-signed certs
-      RADIUS_BLOCKED_GROUP: ${RADIUS_BLOCKED_GROUP:-blocked-guests} # Group name used for blocking
+      SMTP_TLS_REJECT_UNAUTHORIZED: ${SMTP_TLS_REJECT_UNAUTHORIZED} # Set to false for self-signed certs
+      RADIUS_BLOCKED_GROUP: ${RADIUS_BLOCKED_GROUP} # Group name used for blocking
       # Optional: For development, mount code for live reload (requires nodemon etc.)
       # volumes:
       #  - ./backend:/usr/src/app
@@ -97,7 +97,7 @@ services:
       dockerfile: Dockerfile # Assumes Dockerfile from previous example exists
       args:
         # Sets the base URL for API calls within the frontend build
-        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-/api} # Base path Nginx Proxy Mgr forwards to backend
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL} # Base path Nginx Proxy Mgr forwards to backend
     container_name: guestwifi-frontend
     restart: unless-stopped
     networks:
@@ -109,7 +109,7 @@ networks:
     driver: bridge # Internal communication between backend, db, radius
   proxy_network:
     external: true # Assumes network used by Nginx Proxy Manager already exists
-    name: ${NPM_NETWORK:-proxy_network} # Name of the NPM network (set in .env if different)
+    name: ${NPM_NETWORK} # Name of the NPM network (set in .env if different)
 
 # --- Volumes ---
 volumes:
